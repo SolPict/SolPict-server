@@ -1,7 +1,8 @@
 import os
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from contextlib import asynccontextmanager
 
@@ -44,6 +45,10 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-async def root():
+class Image(BaseModel):
+    imageURI: str
+
+
+@app.post("/problem/analyze")
+async def analyzeProblem(image: Image):
     return {"message": "Hello World"}
