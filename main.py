@@ -1,5 +1,6 @@
 import os
 import base64
+import json
 import requests
 
 from fastapi import FastAPI
@@ -61,11 +62,25 @@ async def analyzeProblem(image: Image):
     with open(output_file_path, "wb") as file:
         file.write(image_data)
 
-    requests.post(
+    response = requests.post(
         os.getenv("MATH_OCR_URL"),
-        files=[("file", ("temp_image.jpg", open("temp_image.jpg", "rb")))],
-        data={"enable_img_rot": True},
-        headers={"token": os.getenv("MATH_OCR_TOKEN")},
+        files={"file": open("temp_image.jpg", "rb")},
+        data={
+            "options_json": json.dumps(
+                {"math_inline_delimiters": ["$", "$"], "rm_spaces": True}
+            ),
+            "formats": ["text"],
+            "format_options": {
+                "latex_styled": {"transforms": ["rm_newlines", "rm_fonts"]}
+            },
+            "idiomatic_braces": True,
+        },
+        headers={
+            "app_id": os.getenv("MATH_OCR_ID"),
+            "app_key": os.getenv("MATH_OCR_KEY"),
+        },
     )
+
+    print(response)
 
     return {"message": "성공적으로 요청을 받았습니다."}
