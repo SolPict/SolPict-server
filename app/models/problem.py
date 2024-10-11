@@ -1,22 +1,29 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, Field
+from bson import ObjectId
 
 
 class problemSchema(BaseModel):
+    _id: Optional[ObjectId]
     uri: str = Field(...)
     problemType: str = Field(...)
-    solvingCount: int = Field(..., ge=0)
-    correctCount: int = Field(..., ge=0)
+    solving_users: List[str] = Field(...)
+    correct_users: List[str] = Field(...)
     explanation: str = Field(...)
     answer: int = Field(..., gt=0, le=4)
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "uri": "dataUri",
                 "problemType": "대수학",
-                "solvingCount": 335,
-                "correctCount": 220,
+                "solving_users": [
+                    "hoho@naver.com",
+                    "hoho123@naver.com",
+                    "hoho1212@naver.com",
+                    ...,
+                ],
+                "correct_users": ["hoho@naver.com", "hoho123@naver.com", ...],
                 "explanation": "문제를 해결하려면 이차 방정식~~",
                 "answer": 2,
             }
@@ -24,11 +31,11 @@ class problemSchema(BaseModel):
 
 
 class IncrementCountModel(BaseModel):
-    solvingCount: Optional[int] = Field(..., ge=0)
-    correctCount: Optional[int] = Field(..., ge=0)
+    solving_users: Optional[int] = Field(..., ge=0)
+    correct_users: Optional[int] = Field(..., ge=0)
 
     class Config:
-        schema_extra = {"example": {"solvingCount": 336, "correctCount": 221}}
+        json_schema_extra = {"example": {"solving_users": 336, "correct_users": 221}}
 
 
 def ResponseModel(data, message):
