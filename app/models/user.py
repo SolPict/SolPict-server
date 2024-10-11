@@ -6,31 +6,28 @@ from pydantic import BaseModel, EmailStr, Field
 class userSchema(BaseModel):
     email: EmailStr = Field(...)
     history: List[Tuple[datetime, str]] = Field(...)
-    reviewNote: List[Tuple[bool, str]] = Field(...)
+    reviewNote: List[str] = Field(...)
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "email": "hoho123@gamil.com",
                 "history": [
                     ("2024-09-20", "669668ddf4d1f9783752806a"),
                     ("2024-09-22", "669dac2d0373baf913fcd064"),
                 ],
-                "reviewNote": [
-                    (True, "669668ddf4d1f9783752806a"),
-                    (False, "669dac2d0373baf913fcd064"),
-                ],
+                "reviewNote": ["669668ddf4d1f9783752806a", "669dac2d0373baf913fcd064"],
             }
         }
 
 
 class UpdateUserModel(BaseModel):
-    reviewNote: Optional[List[Tuple[bool, str]]]
+    reviewNote: Optional[List[str]]
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
-                "reviewNote": [(True, "669668ddf4d1f9783752806a")],
+                "reviewNote": ["669668ddf4d1f9783752806a"],
             }
         }
 
