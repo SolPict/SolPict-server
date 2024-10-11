@@ -8,7 +8,7 @@ import shutil
 
 from typing import List
 from fastapi import Body, UploadFile, File, Header
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from bson import json_util, ObjectId
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from accelerate import Accelerator
@@ -23,8 +23,7 @@ router = APIRouter(prefix="/problem", tags=["problem"])
 
 
 class Email(BaseModel):
-    email: str = Field(nullable=True)
-    id: int
+    email: str
 
 
 class Problem_text(BaseModel):
@@ -182,3 +181,31 @@ async def count_up_answer_counting(user_submit: Submit, problemId: str):
     await Problems.find_one_and_update(
         {"_id": ObjectId(problemId)}, update_fields, return_document=True
     )
+
+
+@router.delete("/reviewNote/{problemId}")
+async def delete_review_problem(email: Email, problemId: str):
+    Users = db.mongodb["users"]
+    delete_result = await Users.find_one_and_update(
+        {"email": email.email},
+        {"$pull": {"reviewNote": ObjectId(problemId)}},
+    )
+
+    if delete_result:
+        return {"message": "리뷰노트에서 잘 삭제되었습니다."}, 200
+    else:
+        return {"error": "리뷰노트에서 삭제하지 못하였습니다."}, 500
+
+
+@router.post("/reviewNote/{problemId}")
+async def add_problems_reviewNote(email: Email, problemId: str):
+    Users = db.mongodb["users"]
+    updated_user = await Users.find_one_and_update(
+        {"email": email.email},
+        {"$addToSet": {"reviewNote": ObjectId(problemId)}},
+    )
+
+    if updated_user:
+        return {"message": "리뷰노트에 잘 등록되었습니다."}, 200
+    else:
+        return {"error": "리뷰노트에 등록하지 못하였습니다."}, 500
