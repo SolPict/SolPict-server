@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from bson import json_util
+
+from app.utils.get_images_from_s3 import get_images_from_s3
 from app.database import db
 
 router = APIRouter(prefix="/problems", tags=["problems"])
@@ -12,10 +14,8 @@ class Email(BaseModel):
 
 @router.get("")
 async def get_problems_list():
-    Problems = db.mongodb["problems"]
-    problems = await Problems.find().to_list(100)
-
-    return json_util.dumps(problems)
+    problems_image = await get_images_from_s3("sol.pic")
+    return json_util.dumps(problems_image)
 
 
 @router.post("/history")

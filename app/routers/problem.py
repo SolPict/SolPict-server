@@ -136,14 +136,14 @@ async def analyzeProblem(
             except IndexError:
                 result += ko_problem[index]
 
-        result = await upload_to_s3(file.file, "sol.pic", file.filename)
+        key = await upload_to_s3(file.file, "sol.pic", file.filename)
 
-        if not result:
+        if not key:
             return {"message": "이미지를 업로드하는데 문제가 발생하였습니다."}
 
         created_problem = await create_problem(
             {
-                "key": result,
+                "key": key,
                 "problemType": random.choice(["대수학", "수와 연산", "기하학"]),
                 "solvingCount": 1,
                 "correctCount": 0,
@@ -184,6 +184,15 @@ async def count_up_answer_counting(user_submit: Submit, problemId: str):
     await Problems.find_one_and_update(
         {"_id": ObjectId(problemId)}, update_fields, return_document=True
     )
+
+
+@router.get("/{problemId}")
+async def get_problem_image(problemId: str):
+    problemId = "/".join(json.loads(problemId))
+    Problems = db.mongodb["problems"]
+    found_problem = await Problems.find_one({"key": problemId})
+
+    return json_util.dumps(found_problem["explanation"])
 
 
 @router.delete("/reviewNote/{problemId}")
