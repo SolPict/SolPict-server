@@ -15,9 +15,9 @@ from accelerate import Accelerator
 from fastapi.encoders import jsonable_encoder
 
 from app.database import db
-from app.utils.divide_solving import divide_solving
 from app.models.problem import problemSchema
-
+from app.utils.divide_solving import divide_solving
+from app.utils.upload_to_s3 import upload_to_s3
 
 router = APIRouter(prefix="/problem", tags=["problem"])
 
@@ -28,6 +28,15 @@ class Email(BaseModel):
 
 class Problem_text(BaseModel):
     ocrText: str
+
+
+class ProblemCollection(BaseModel):
+    problems: List[problemSchema]
+
+
+class Submit(BaseModel):
+    email: str
+    isUserAnswerCorrect: bool
 
 
 @router.post("/analyze")
@@ -106,7 +115,6 @@ async def analyzeProblem(
         en_answer = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
         en_answer, math_answer = divide_solving(en_answer)
-        print(en_answer, math_answer)
         translate_answer = requests.post(
             os.getenv("TRANSLATE_URL"),
             json={"text": en_answer, "target_lang": "KO"},
@@ -128,9 +136,14 @@ async def analyzeProblem(
             except IndexError:
                 result += ko_problem[index]
 
+        result = await upload_to_s3(file.file, "sol.pic", file.filename)
+
+        if not result:
+            return {"message": "이미지를 업로드하는데 문제가 발생하였습니다."}
+
         created_problem = await create_problem(
             {
-                "uri": uri,
+                "key": result,
                 "problemType": random.choice(["대수학", "수와 연산", "기하학"]),
                 "solvingCount": 1,
                 "correctCount": 0,
@@ -146,20 +159,10 @@ async def analyzeProblem(
             await Users.find_one_and_update(
                 {"email": email}, {"$addToSet": {"history": new_history}}
             )
-        print(created_problem)
         return json_util.dumps(created_problem)
 
     except Exception as error:
         return {"message": "분석하는데 에러가 발생하였습니다.", "error": error}, 500
-
-
-class ProblemCollection(BaseModel):
-    problems: List[problemSchema]
-
-
-class Submit(BaseModel):
-    email: str
-    isUserAnswerCorrect: bool
 
 
 async def create_problem(problem: problemSchema = Body(...)):

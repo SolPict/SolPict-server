@@ -5,7 +5,7 @@ from bson import ObjectId
 
 class problemSchema(BaseModel):
     _id: Optional[ObjectId]
-    uri: str = Field(...)
+    key: str = Field(...)
     problemType: str = Field(...)
     solving_users: List[str] = Field(...)
     correct_users: List[str] = Field(...)
@@ -15,7 +15,7 @@ class problemSchema(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "uri": "dataUri",
+                "key": "dataUri",
                 "problemType": "대수학",
                 "solving_users": [
                     "hoho@naver.com",
