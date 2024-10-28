@@ -6,6 +6,7 @@ from bson import ObjectId
 class problemSchema(BaseModel):
     _id: Optional[ObjectId]
     key: str = Field(...)
+    ocr: str = Field(...)
     problemType: str = Field(...)
     solving_users: List[str] = Field(...)
     correct_users: List[str] = Field(...)
@@ -16,6 +17,7 @@ class problemSchema(BaseModel):
         json_schema_extra = {
             "example": {
                 "key": "dataUri",
+                "ocr": "2. 연립방정식 $\\left\\{\\begin{array}{l}8 x+5 y=4 \\ 3 x-a ~~~",
                 "problemType": "대수학",
                 "solving_users": [
                     "hoho@naver.com",
