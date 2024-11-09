@@ -13,8 +13,8 @@ class Email(BaseModel):
 
 
 @router.get("")
-async def get_problems_list():
-    problems_image = await get_images_from_s3("sol.pic")
+async def get_problems_list(offset: int, problemLimit: int):
+    problems_image = await get_images_from_s3("sol.pic", offset, problemLimit)
     return json_util.dumps(problems_image)
 
 
@@ -37,9 +37,11 @@ async def get_problems_history_list(user_email: Email):
 @router.post("/reviewNote")
 async def get_problems_reviewNote_list(user_email: Email):
     Users = db.mongodb["users"]
-    Problems = db.mongodb["problems"]
     foundUser = await Users.find_one({"email": user_email.email})
     review_id_list = foundUser["reviewNote"]
-    review_list = await Problems.find({"_id": {"$in": review_id_list}}).to_list(100)
+    problems_images = await get_images_from_s3("sol.pic")
+    review_images = filter(
+        lambda image: image["Key"] in review_id_list, problems_images
+    )
 
-    return json_util.dumps(review_list)
+    return json_util.dumps(review_images)

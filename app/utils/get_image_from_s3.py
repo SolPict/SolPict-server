@@ -25,7 +25,6 @@ async def get_image_from_s3(bucket_name: str, key: str):
                 Bucket=bucket_name,
                 Key=key,
             )
-            print(s3_response)
             return await s3_response["Body"].read()
     except ClientError as error:
         print("Failed to upload file: {}".format(error))
