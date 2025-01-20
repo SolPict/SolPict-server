@@ -11,7 +11,7 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_S3_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_S3_SECRET_KEY")
 
 
-async def get_images_from_s3(bucket_name: str, offset: int, problemLimit: int):
+async def get_images_from_s3(bucket_name: str):
     try:
         session = get_session()
         async with session.create_client(
@@ -24,17 +24,7 @@ async def get_images_from_s3(bucket_name: str, offset: int, problemLimit: int):
             async for result in paginator.paginate(
                 Bucket=bucket_name, Prefix="Sol_Pic"
             ):
-                image_list = [image for image in result.get("Contents", [])]
-                next_offset = offset + 1
-                if offset * problemLimit + problemLimit >= len(image_list):
-                    next_offset = None
-
-                return {
-                    "image_list": image_list[
-                        offset * problemLimit : offset * problemLimit + problemLimit
-                    ],
-                    "offset": next_offset,
-                }
+                return [image for image in result.get("Contents", [])]
 
     except ClientError as error:
         print("Failed to upload file: {}".format(error))

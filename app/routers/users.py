@@ -4,11 +4,16 @@ from fastapi import Body
 from fastapi.encoders import jsonable_encoder
 from app.models.user import userSchema
 from app.database import db
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/")
+class Message(BaseModel):
+    message: str
+
+
+@router.post("", response_model=Message)
 async def create_user(user: userSchema = Body(...)):
     user = jsonable_encoder(user)
     Users = db.mongodb["users"]
