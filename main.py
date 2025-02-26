@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.routers import users
+from app.routers import health_check, users
 from app.routers import problems
 from app.routers import problem
 
@@ -38,3 +38,4 @@ app.add_middleware(
 app.include_router(users.router)
 app.include_router(problem.router)
 app.include_router(problems.router)
+app.include_router(health_check.router)
