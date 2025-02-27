@@ -4,7 +4,7 @@ from typing import List, TypedDict, Union
 from datetime import datetime
 
 from app.utils.get_images_from_s3 import get_images_from_s3
-from app.database import db
+from app.database import db_manager
 
 router = APIRouter(prefix="/problems", tags=["problems"])
 
@@ -50,7 +50,7 @@ async def get_problems_list(offset: int, problemLimit: int):
 async def get_problems_reviewNote_list(
     offset: int, problemLimit: int, user_email: Email
 ):
-    Users = db.mongodb["users"]
+    Users = db_manager.mongodb["users"]
     foundUser = await Users.find_one({"email": user_email.email})
     review_id_list = foundUser["reviewNote"]
     problems_images = await get_images_from_s3("sol.pic")

@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pymongo.client_session import ClientSession
 import os
 import json
 import requests
@@ -7,12 +8,12 @@ import shutil
 
 from typing import List, Optional
 from bson import json_util, ObjectId
-from fastapi import Body, UploadFile, File
+from fastapi import UploadFile, File
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
 from huggingface_hub import InferenceClient
 
-from app.database import db
+from app.database import db_manager
 from app.models.problem import problemSchema
 from app.utils.divide_solving import divide_solving
 from app.utils.upload_to_s3 import upload_to_s3
@@ -111,75 +112,78 @@ def request_huggingface(en_problem: str) -> Optional[str]:
         return None
 
 
-async def create_problem(problem: problemSchema = Body(...)):
+async def create_problem(problem: dict, session: ClientSession = None):
     problem = jsonable_encoder(problem)
-    Problems = db.mongodb["problems"]
-    new_problem = await Problems.insert_one(problem)
-    created_problem = await Problems.find_one({"_id": new_problem.inserted_id})
+    Problems = db_manager.mongodb["problems"]
+    new_problem = await Problems.insert_one(problem, session=session)
+    created_problem = await Problems.find_one(
+        {"_id": new_problem.inserted_id}, session=session
+    )
+
     return created_problem
 
 
 @router.post("/analyze", response_model=Analyze_Problem)
 async def analyzeProblem(file: UploadFile = File(...)):
-    try:
-        file_location = f"images/{file.filename}"
-        with open(file_location, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
 
-        kn_problem = request_ocr(file_location)
-        if not kn_problem:
-            return {"message": "OCR 분석 실패"}
+    async with db_manager as session:
+        try:
+            file_location = f"images/{file.filename}"
+            with open(file_location, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
 
-        en_problem = request_translation([kn_problem], "EN")[0].get("text", None)
-        if not en_problem:
-            return {"message": "번역 실패"}
+            kn_problem = request_ocr(file_location)
+            if not kn_problem:
+                raise HTTPException(status_code=400, detail="OCR 분석 실패")
 
-        en_answer = request_huggingface(en_problem)
-        if not en_answer:
-            return {"message": "AI 풀이 실패"}
-        en_answer, math_answer = divide_solving(en_answer)
+            en_problem = request_translation([kn_problem], "EN")[0].get("text", None)
+            if not en_problem:
+                raise HTTPException(status_code=400, detail="번역 실패")
 
-        ko_problem = request_translation(en_answer, "KO")
-        ko_problem = [item["text"] for item in ko_problem]
-        if not ko_problem:
-            return {"message": "풀이 번역 실패"}
+            en_answer = request_huggingface(en_problem)
+            if not en_answer:
+                raise HTTPException(status_code=400, detail="AI 풀이 실패")
+            en_answer, math_answer = divide_solving(en_answer)
 
-        result = ""
-        for index in range(len(ko_problem)):
-            try:
-                result += ko_problem[index] + "$" + str(math_answer[index]) + "$"
-            except IndexError:
-                result += ko_problem[index]
+            ko_problem = request_translation(en_answer, "KO")
+            ko_problem = [item["text"] for item in ko_problem]
+            if not ko_problem:
+                raise HTTPException(status_code=400, detail="풀이 번역 실패")
 
-        key = await upload_to_s3(file.file, "sol.pic", file.filename)
-        if not key:
-            return {"message": "이미지 업로드 실패"}
+            result = ""
+            for index in range(len(ko_problem)):
+                try:
+                    result += ko_problem[index] + "$" + str(math_answer[index]) + "$"
+                except IndexError:
+                    result += ko_problem[index]
 
-        created_problem = await create_problem(
-            {
-                "key": key,
-                "problemType": random.choice(["대수학", "수와 연산", "기하학"]),
-                "solvingCount": 1,
-                "correctCount": 0,
-                "explanation": result,
-                "answer": get_answer_number(en_problem, get_answer(result)),
-            }
-        )
-        if not created_problem:
-            return {"message": "문제 저장 실패"}
+            key = await upload_to_s3(file.file, "sol.pic", file.filename)
+            if not key:
+                raise HTTPException(status_code=500, detail="이미지 업로드 실패")
 
-        return created_problem
+            created_problem = await create_problem(
+                {
+                    "key": key,
+                    "problemType": random.choice(["대수학", "수와 연산", "기하학"]),
+                    "solvingCount": 1,
+                    "correctCount": 0,
+                    "explanation": result,
+                    "answer": get_answer_number(en_problem, get_answer(result)),
+                },
+                session=session,
+            )
+            if not created_problem:
+                return {"message": "문제 저장 실패"}
 
-    except Exception as error:
-        return {
-            "message": "분석하는데 에러가 발생하였습니다.",
-            "error": str(error),
-        }, 500
+            return created_problem
+
+        except Exception as error:
+            raise HTTPException(status_code=500, detail=f"트랜잭션 실패: {str(error)}")
 
 
 @router.post("/solving/{problemId}", response_model=Message)
 async def count_up_answer_counting(user_submit: Submit, problemId: str):
-    Problems = db.mongodb["problems"]
+    Problems = db_manager.mongodb["problems"]
     update_fields = {"$addToSet": {"solving_user": user_submit.email}}
 
     if user_submit.isUserAnswerCorrect:
@@ -195,7 +199,7 @@ async def count_up_answer_counting(user_submit: Submit, problemId: str):
 @router.get("/{problemId}", response_model=str)
 async def get_problem_image(problemId: str):
     problemId = "/".join(json.loads(problemId))
-    Problems = db.mongodb["problems"]
+    Problems = db_manager.mongodb["problems"]
     found_problem = await Problems.find_one({"key": problemId})
 
     return json_util.dumps(found_problem["explanation"])
@@ -204,7 +208,7 @@ async def get_problem_image(problemId: str):
 @router.delete("/reviewNote/{problemId}", response_model=Message)
 async def delete_review_problem(email: Email, problemId: str):
     problemId = "/".join(json.loads(problemId))
-    Users = db.mongodb["users"]
+    Users = db_manager.mongodb["users"]
     delete_result = await Users.find_one_and_update(
         {"email": email.email},
         {"$pull": {"reviewNote": problemId}},
@@ -218,7 +222,7 @@ async def delete_review_problem(email: Email, problemId: str):
 
 @router.post("/reviewNote/{problemId}", response_model=Message)
 async def add_problems_reviewNote(email: Email, problemId: str):
-    Users = db.mongodb["users"]
+    Users = db_manager.mongodb["users"]
     updated_user = await Users.find_one_and_update(
         {"email": email.email},
         {"$addToSet": {"reviewNote": "/".join(json.loads(problemId))}},

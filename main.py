@@ -1,6 +1,6 @@
 import os
 
-from app.database import db
+from app.database import db_manager
 
 from fastapi import FastAPI
 from dotenv import load_dotenv
@@ -16,9 +16,8 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await db.connect_to_database(os.getenv("DATABASE_URL"))
     yield
-    await db.close_database_connection()
+    await db_manager.close_database_connection()
 
 
 app = FastAPI(title="FastAPI", lifespan=lifespan)
