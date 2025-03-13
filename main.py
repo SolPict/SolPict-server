@@ -16,6 +16,8 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    db_path = os.getenv("DATABASE_URL")
+    await db_manager.init_connection(db_path)
     yield
     await db_manager.close_database_connection()
 

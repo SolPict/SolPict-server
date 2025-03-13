@@ -125,60 +125,61 @@ async def create_problem(problem: dict, session: ClientSession = None):
 
 @router.post("/analyze", response_model=Analyze_Problem)
 async def analyzeProblem(file: UploadFile = File(...)):
+    try:
+        file_location = f"images/{file.filename}"
+        with open(file_location, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    async with db_manager as session:
-        try:
-            file_location = f"images/{file.filename}"
-            with open(file_location, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
+        kn_problem = request_ocr(file_location)
+        if not kn_problem:
+            raise HTTPException(status_code=400, detail="OCR 분석 실패")
 
-            kn_problem = request_ocr(file_location)
-            if not kn_problem:
-                raise HTTPException(status_code=400, detail="OCR 분석 실패")
+        en_problem = request_translation([kn_problem], "EN")[0].get("text", None)
+        if not en_problem:
+            raise HTTPException(status_code=400, detail="번역 실패")
 
-            en_problem = request_translation([kn_problem], "EN")[0].get("text", None)
-            if not en_problem:
-                raise HTTPException(status_code=400, detail="번역 실패")
+        en_answer = request_huggingface(en_problem)
+        if not en_answer:
+            raise HTTPException(status_code=400, detail="AI 풀이 실패")
 
-            en_answer = request_huggingface(en_problem)
-            if not en_answer:
-                raise HTTPException(status_code=400, detail="AI 풀이 실패")
-            en_answer, math_answer = divide_solving(en_answer)
+        en_answer, math_answer = divide_solving(en_answer)
 
-            ko_problem = request_translation(en_answer, "KO")
-            ko_problem = [item["text"] for item in ko_problem]
-            if not ko_problem:
-                raise HTTPException(status_code=400, detail="풀이 번역 실패")
+        ko_problem = request_translation(en_answer, "KO")
+        ko_problem = [item["text"] for item in ko_problem]
+        if not ko_problem:
+            raise HTTPException(status_code=400, detail="풀이 번역 실패")
 
-            result = ""
-            for index in range(len(ko_problem)):
-                try:
-                    result += ko_problem[index] + "$" + str(math_answer[index]) + "$"
-                except IndexError:
-                    result += ko_problem[index]
+        result = ""
+        for index in range(len(ko_problem)):
+            try:
+                result += ko_problem[index] + "$" + str(math_answer[index]) + "$"
+            except IndexError:
+                result += ko_problem[index]
 
-            key = await upload_to_s3(file.file, "sol.pic", file.filename)
-            if not key:
-                raise HTTPException(status_code=500, detail="이미지 업로드 실패")
+        key = await upload_to_s3(file.file, "sol.pic", file.filename)
+        if not key:
+            raise HTTPException(status_code=500, detail="이미지 업로드 실패")
 
-            created_problem = await create_problem(
-                {
-                    "key": key,
-                    "problemType": random.choice(["대수학", "수와 연산", "기하학"]),
-                    "solvingCount": 1,
-                    "correctCount": 0,
-                    "explanation": result,
-                    "answer": get_answer_number(en_problem, get_answer(result)),
-                },
-                session=session,
-            )
-            if not created_problem:
-                return {"message": "문제 저장 실패"}
+        session = await db_manager.get_session()
+        created_problem = await create_problem(
+            {
+                "key": key,
+                "problemType": random.choice(["대수학", "수와 연산", "기하학"]),
+                "solvingCount": 1,
+                "correctCount": 0,
+                "explanation": result,
+                "answer": get_answer_number(en_problem, get_answer(result)),
+            },
+            session=session,
+        )
 
-            return created_problem
+        if not created_problem:
+            return {"message": "문제 저장 실패"}
 
-        except Exception as error:
-            raise HTTPException(status_code=500, detail=f"트랜잭션 실패: {str(error)}")
+        return created_problem
+
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=f"분석 실패: {str(error)}")
 
 
 @router.post("/solving/{problemId}", response_model=Message)
