@@ -8,24 +8,33 @@ class MongoManager:
     _instance = None
     _lock = asyncio.Lock()
 
-    def __new__(cls, path: str):
+    def __new__(cls):
         if not cls._instance:
             cls._instance = super().__new__(cls)
-            cls._instance._init_connection(path)
         return cls._instance
 
-    async def _init_connection(self, path: str):
+    async def init_connection(self, path: str):
+        if hasattr(self, "client"):
+            return
+
         async with self._lock:
-            self.client = AsyncIOMotorClient(path)
-            self.mongodb = self.client["SolPict"]
-            print("데이터베이스 연결에 성공하였습니다.🙆‍♂️")
+            if not hasattr(self, "client"):
+                self.client = AsyncIOMotorClient(path)
+                self.mongodb = self.client["SolPict"]
+                print("데이터베이스 연결 성공! 🙆‍♂️")
 
     async def close_database_connection(self):
-        if self.client:
+        if hasattr(self, "client"):
             self.client.close()
-            print("데이터베이스 연결을 종료하였습니다.🙇‍♂️")
+            del self.client
+            print("데이터베이스 연결 종료 🙇‍♂️")
 
     async def __aenter__(self):
+        if not hasattr(self, "client"):
+            raise RuntimeError(
+                "MongoDB 연결이 초기화되지 않았습니다. 먼저 init_connection()을 호출하세요."
+            )
+
         self.session = await self.client.start_session()
         self.session.start_transaction(
             read_concern=ReadConcern("majority"),
@@ -35,10 +44,10 @@ class MongoManager:
         return self.session
 
     async def __aexit__(self, exc_type, exc_value, traceback):
-        if exc_type is not None:
-            await self.session.abort_transaction()
-            print("트랜잭션 롤백됨.")
-        else:
-            await self.session.commit_transaction()
-            print("트랜잭션 커밋됨.")
-        await self.session.end_session()
+        if hasattr(self, "session"):
+            if exc_type is not None:
+                await self.session.abort_transaction()
+            else:
+                await self.session.commit_transaction()
+            await self.session.end_session()
+            del self.session
