@@ -10,7 +10,8 @@ class problemSchema(BaseModel):
     problemType: str = Field(...)
     solving_users: List[str] = Field(...)
     correct_users: List[str] = Field(...)
-    explanation: str = Field(...)
+    ko_explanation: str = Field(...)
+    en_explanation: str = Field(...)
     answer: int = Field(..., gt=0, le=4)
 
     class Config:
@@ -26,7 +27,8 @@ class problemSchema(BaseModel):
                     ...,
                 ],
                 "correct_users": ["hoho@naver.com", "hoho123@naver.com", ...],
-                "explanation": "문제를 해결하려면 이차 방정식~~",
+                "ko_explanation": "문제를 해결하려면 이차 방정식~~",
+                "en_explanation": "This problem is ~~",
                 "answer": 2,
             }
         }
