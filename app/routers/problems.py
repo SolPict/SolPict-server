@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, TypedDict, Union
+from typing import List, Optional
 from datetime import datetime
 
 from app.utils.get_images_from_s3 import get_images_from_s3
@@ -13,27 +13,34 @@ class Email(BaseModel):
     email: str
 
 
-class Owner(TypedDict):
+class Owner(BaseModel):
     ID: str
 
 
-class ImageData(TypedDict):
+class ImageData(BaseModel):
     Key: str
     LastModified: datetime
     ETag: str
     Size: int
     StorageClass: str
-    Owner: Owner
+    Owner: Optional["Owner"] = None
 
 
-class ImageList(TypedDict):
+class ImageList(BaseModel):
     image_list: List[ImageData]
-    offset: Union[int, None]
+    offset: Optional[int]
 
 
 @router.get("", response_model=ImageList)
-async def get_problems_list(offset: int, problemLimit: int):
-    image_list = await get_images_from_s3("sol.pic")
+async def get_problems_list(
+    offset: int, problemLimit: int, problemType: str = "전체보기"
+):
+    bucket_name = "sol.pic"
+    image_list = await get_images_from_s3(bucket_name, problemType)
+
+    if not image_list:
+        return {"image_list": [], "offset": None}
+
     next_offset = offset + 1
     if offset * problemLimit + problemLimit >= len(image_list):
         next_offset = None
