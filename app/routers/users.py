@@ -1,21 +1,21 @@
-from fastapi import APIRouter
-
-from fastapi import Body
-from fastapi.encoders import jsonable_encoder
-from app.models.user import userSchema
-from app.database import db_manager
-from pydantic import BaseModel
+from fastapi import APIRouter, HTTPException, Body
+from app.schemas.users import UserCreate, UserEmail, Message
+from app.crud import users as crud_user
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-class Message(BaseModel):
-    message: str
-
-
 @router.post("", response_model=Message)
-async def create_user(user: userSchema = Body(...)):
-    user = jsonable_encoder(user)
-    Users = db_manager.mongodb["users"]
-    await Users.insert_one(user)
-    return {"message": "정상적으로 잘 삽입되었습니다."}
+async def create_user(user: UserCreate = Body(...)):
+    success = await crud_user.create_user(user)
+    if not success:
+        raise HTTPException(status_code=400, detail="이미 등록된 이메일입니다.")
+    return {"message": "정상적으로 회원가입이 완료되었습니다."}
+
+
+@router.delete("", response_model=Message)
+async def delete_user(user: UserEmail = Body(...)):
+    success = await crud_user.delete_user_by_email(user.email)
+    if not success:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+    return {"message": "정상적으로 삭제되었습니다."}

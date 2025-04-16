@@ -34,5 +34,5 @@ async def upload_to_s3(
 
             return key
     except ClientError as error:
-        print("Failed to upload file: {}".format(error))
+        print("파일 업로드에 실패했습니다.: {}".format(error))
         return None
