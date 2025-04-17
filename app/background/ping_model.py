@@ -18,4 +18,4 @@ def ping_huggingface_model():
 async def start_ping_loop():
     while True:
         await asyncio.to_thread(ping_huggingface_model)
-        await asyncio.sleep(300)
+        await asyncio.sleep(200)
