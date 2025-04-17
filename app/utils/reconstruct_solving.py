@@ -1,22 +1,23 @@
+from collections import deque
+
+
 def reconstruct_solving(sentence_expression, math_expression):
     result = []
-    sentence_first = sentence_expression[0] is None
+    sentences = deque(sentence_expression)
+    formulas = deque(math_expression)
 
-    sentences = sentence_expression[1:]
-    maths = math_expression[1:]
+    [first_queue, second_queue] = (
+        [formulas, sentences] if sentences[0] is None else [sentences, formulas]
+    )
 
-    max_len = max(len(sentences), len(maths))
+    while first_queue or second_queue:
+        if first_queue:
+            first = first_queue.popleft()
 
-    for i in range(max_len):
-        if sentence_first:
-            if i < len(sentences):
-                result.append(sentences[i] or "")
-            if i < len(maths):
-                result.append(maths[i] or "")
-        else:
-            if i < len(maths):
-                result.append(maths[i] or "")
-            if i < len(sentences):
-                result.append(sentences[i] or "")
+        if second_queue:
+            second = second_queue.popleft()
 
-    return "".join(result)
+        result.append(second)
+        result.append(first)
+
+    return "".join(result[1:])
