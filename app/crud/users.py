@@ -1,9 +1,9 @@
 from fastapi.encoders import jsonable_encoder
 from app.database import db_manager
-from app.schemas.users import UserCreate
+from app.schemas.users import UserEmail
 
 
-async def create_user(user: UserCreate) -> bool:
+async def create_user(user: UserEmail) -> bool:
     Users = db_manager.mongodb["users"]
     user = jsonable_encoder(user)
 

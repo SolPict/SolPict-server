@@ -7,8 +7,3 @@ class Message(BaseModel):
 
 class UserEmail(BaseModel):
     email: str
-
-
-class UserCreate(BaseModel):
-    email: str
-    password: str
