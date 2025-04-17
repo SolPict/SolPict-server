@@ -1,16 +1,21 @@
 def analyze_ocr_text(ocr_text: str) -> str:
     is_latex = False
     have_question_mark = False
-    count_num = 0
     count_kor = 0
     count_eng = 0
     count_latex = 0
 
-    for char in ocr_text:
-        if char == "$":
+    for index in range(len(ocr_text)):
+        char = ocr_text[index]
+        chars = ocr_text[index : index + 2]
+
+        if char == "$" or chars == "\\[" or chars == "\\]":
             count_latex += 1
             is_latex = not is_latex
             continue
+
+        if char == "?":
+            have_question_mark = True
 
         if is_latex:
             continue
@@ -19,12 +24,8 @@ def analyze_ocr_text(ocr_text: str) -> str:
             count_kor += 1
         elif ("a" <= char <= "z") or ("A" <= char <= "Z"):
             count_eng += 1
-        elif char.isdigit():
-            count_num += 1
-        elif char == "?":
-            have_question_mark = True
 
-    if not (count_latex and count_num and have_question_mark):
+    if not (count_latex and have_question_mark):
         raise ValueError("수학 문제가 아닌 OCR입니다.")
 
     if is_latex:
