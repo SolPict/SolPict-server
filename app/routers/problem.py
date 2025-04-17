@@ -33,12 +33,24 @@ async def analyze_problem(file: UploadFile = File(...)):
 
         ocr_result = request_ocr(file_location)
         if not ocr_result:
-            raise HTTPException(status_code=400, detail="OCR 분석 실패")
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "수학 이미지가 아닙니다.",
+                    "message": "텍스트를 추출할 수 없거나 수식이 감지되지 않았습니다.",
+                },
+            )
 
         try:
             lang = analyze_ocr_text(ocr_result)
         except ValueError as error:
-            raise HTTPException(status_code=400, detail=str(error))
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "수학 이미지가 아닙니다.",
+                    "message": str(error),
+                },
+            )
 
         if lang == "Eng":
             en_problem = ocr_result
@@ -51,7 +63,19 @@ async def analyze_problem(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="지원하지 않는 언어입니다.")
 
         en_AI_answer = await request_huggingface_async(en_problem)
-        if not en_AI_answer:
+
+        if en_AI_answer == 503:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "일시적으로 AI가 응답하지 않습니다.",
+                },
+            )
+        elif en_AI_answer == 504:
+            raise HTTPException(
+                status_code=504, detail="Hugging Face 요청이 타임아웃되었습니다."
+            )
+        elif not en_AI_answer:
             raise HTTPException(status_code=400, detail="AI 풀이 실패")
 
         en_answer, math_answer = divide_solving(en_AI_answer)
@@ -93,7 +117,7 @@ async def analyze_problem(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"분석 실패: {str(error)}")
 
 
-@router.post("/{problemId:path}/solving", response_model=MessageWithAnswer)
+@router.post("/solving/{problemId:path}", response_model=MessageWithAnswer)
 async def count_up_answer_counting(user_submit: Submit, problemId: str):
     problem = await crud_problem.get_problem_by_key(problemId)
     if not problem:
@@ -110,7 +134,7 @@ async def count_up_answer_counting(user_submit: Submit, problemId: str):
     }
 
 
-@router.get("/{problemId:path}/explanation", response_model=str)
+@router.get("/{problemId:path}", response_model=str)
 async def get_problem_explanation(problemId: str, language: str = "KO"):
     try:
         problem_key = "/".join(json.loads(problemId))
@@ -131,7 +155,7 @@ async def get_problem_explanation(problemId: str, language: str = "KO"):
     return explanation
 
 
-@router.post("/review-note/{problemId}", response_model=Message)
+@router.post("/reviewNote/{problemId}", response_model=Message)
 async def add_problems_review_note(email: Email, problemId: str):
     problem_key = "/".join(json.loads(problemId))
     result = await crud_problem.add_review_note(email.email, problem_key)
@@ -142,7 +166,7 @@ async def add_problems_review_note(email: Email, problemId: str):
         return {"error": "리뷰노트에 등록하지 못하였습니다."}
 
 
-@router.delete("/review-note/{problemId}", response_model=Message)
+@router.delete("/reviewNote/{problemId}", response_model=Message)
 async def delete_review_problem(email: Email, problemId: str):
     problem_key = "/".join(json.loads(problemId))
     result = await crud_problem.delete_review_note(email.email, problem_key)

@@ -1,7 +1,6 @@
 import asyncio
 import os
 from typing import Optional
-
 from huggingface_hub import InferenceClient
 
 
@@ -17,8 +16,17 @@ def request_huggingface(en_problem: str) -> Optional[str]:
         )
 
         return completion.choices[0].message["content"]
+
     except Exception as error:
-        print(f"Hugging Face 요청에 실패했습니다. : {error}")
+        error_str = str(error)
+        if "503" in error_str:
+            print("Hugging Face 서버가 일시적으로 응답하지 않습니다.")
+            return 503
+        elif "504" in error_str:
+            print("Hugging Face 요청이 타임아웃되었습니다.")
+            return 504
+        else:
+            print(f"Hugging Face 요청 실패입니다. {error_str}")
         return None
 
 
