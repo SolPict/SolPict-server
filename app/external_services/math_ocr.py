@@ -1,7 +1,8 @@
 import json
 import os
 from typing import Optional
-from fastapi import requests
+
+import requests
 
 
 def request_ocr(file_location: str) -> Optional[str]:
