@@ -1,5 +1,7 @@
+import io
 import json
-import shutil
+from PIL import Image
+
 from fastapi import APIRouter, File, UploadFile, HTTPException
 from app.schemas.problem import (
     Analyze_Problem,
@@ -27,11 +29,14 @@ router = APIRouter(prefix="/problem", tags=["problem"])
 @router.post("/analyze", response_model=Analyze_Problem)
 async def analyze_problem(file: UploadFile = File(...)):
     try:
-        file_location = f"images/{file.filename}"
-        with open(file_location, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        file_bytes = await file.read()
 
-        ocr_result = request_ocr(file_location)
+        try:
+            image = Image.open(io.BytesIO(file_bytes))
+        except Exception:
+            raise HTTPException(status_code=400, detail="이미지 파일을 열 수 없습니다.")
+
+        ocr_result = request_ocr(image)
         if not ocr_result:
             raise HTTPException(
                 status_code=400,
