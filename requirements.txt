@@ -7,11 +7,8 @@ annotated-types==0.7.0
 anyio==4.8.0
 asgiref==3.8.1
 attrs==25.1.0
-awscli==1.38.37
-awsebcli==3.22.0
 black==25.1.0
 blessed==1.20.0
-botocore==1.37.37
 cement==2.10.14
 certifi==2025.1.31
 cfgv==3.4.0
@@ -19,7 +16,6 @@ charset-normalizer==3.4.1
 click==8.1.8
 colorama==0.4.6
 distlib==0.3.9
-Django==5.2
 dnspython==2.7.0
 docutils==0.19
 email_validator==2.2.0
@@ -54,7 +50,6 @@ python-multipart==0.0.20
 PyYAML==6.0.2
 requests==2.32.3
 rsa==4.7.2
-s3transfer==0.11.5
 semantic-version==2.10.0
 setuptools==76.0.0
 six==1.17.0
