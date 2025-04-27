@@ -1,1 +1,1 @@
-web: gunicorn -w 4 -k gthread -b 0.0.0.0:8000 main:app -k uvicorn.workers.UvicornWorker
+web: newrelic-admin run-program gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 main:app
