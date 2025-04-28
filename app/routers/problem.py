@@ -1,8 +1,9 @@
-import io
 import json
-from PIL import Image
+import logging
 
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter, File, UploadFile, HTTPException, Request
+
+from app.external_services.math_ocr import request_ocr_from_upload_file
 from app.schemas.problem import (
     Analyze_Problem,
     Email,
@@ -13,49 +14,55 @@ from app.schemas.problem import (
 from app.crud import problem as crud_problem
 from app.database import db_manager
 from app.external_services.huggingface import request_huggingface_async
-from app.external_services.math_ocr import request_ocr
 from app.external_services.translation import request_translation
 from app.utils.analyzeOcrText import analyze_ocr_text
 from app.utils.divide_solving import divide_solving
 from app.utils.get_answer import get_answer
 from app.utils.get_answer_number import get_answer_number
+from app.utils.rate_limit import check_rate_limit
 from app.utils.reconstruct_solving import reconstruct_solving
 from app.utils.upload_to_s3 import upload_to_s3
 from app.utils.classify_problem_type import classify_problem_type
+from app.utils.device_limit import check_device_request_limit
 
 router = APIRouter(prefix="/problem", tags=["problem"])
+logger = logging.getLogger("uvicorn.error")
 
 
 @router.post("/analyze", response_model=Analyze_Problem)
-async def analyze_problem(file: UploadFile = File(...)):
+async def analyze_problem(request: Request, file: UploadFile = File(...)):
     try:
-        file_bytes = await file.read()
+        try:
+            await check_rate_limit(request, api_name="analyze", limit_time_sec=20)
+        except HTTPException as rate_limit_error:
+            logger.warning(
+                f"[Rate Limit Error] {rate_limit_error.status_code}: "
+                f"{rate_limit_error.detail}"
+            )
+            raise rate_limit_error
 
         try:
-            image = Image.open(io.BytesIO(file_bytes))
-        except Exception:
-            raise HTTPException(status_code=400, detail="이미지 파일을 열 수 없습니다.")
+            await check_device_request_limit(request, api_name="analyze", max_calls=5)
+        except HTTPException as device_limit_error:
+            logger.warning(
+                f"[Device Limit Error] {device_limit_error.status_code}: "
+                f"{device_limit_error.detail}"
+            )
+            raise device_limit_error
 
-        ocr_result = request_ocr(image)
+        ocr_result = await request_ocr_from_upload_file(file)
         if not ocr_result:
+            logger.warning("[OCR Result Empty] 텍스트 추출 실패")
             raise HTTPException(
                 status_code=400,
-                detail={
-                    "error": "수학 이미지가 아닙니다.",
-                    "message": "텍스트를 추출할 수 없거나 수식이 감지되지 않았습니다.",
-                },
+                detail="수학 이미지에서 텍스트를 추출할 수 없습니다.",
             )
 
         try:
             lang = analyze_ocr_text(ocr_result)
-        except ValueError as error:
-            raise HTTPException(
-                status_code=400,
-                detail={
-                    "error": "수학 이미지가 아닙니다.",
-                    "message": str(error),
-                },
-            )
+        except ValueError as e:
+            logger.error(f"[OCR Analyze Error] {e}")
+            raise HTTPException(status_code=400, detail=str(e))
 
         if lang == "Eng":
             en_problem = ocr_result
@@ -63,63 +70,81 @@ async def analyze_problem(file: UploadFile = File(...)):
             translated = request_translation([ocr_result], "EN")
             en_problem = translated[0].get("text") if translated else None
             if not en_problem:
+                logger.error("[Translation Error] 한글 문제 번역 실패")
                 raise HTTPException(status_code=400, detail="번역 실패")
         else:
+            logger.error(f"[Unsupported Language] lang={lang}")
             raise HTTPException(status_code=400, detail="지원하지 않는 언어입니다.")
 
         en_AI_answer = await request_huggingface_async(en_problem)
-
         if en_AI_answer == 503:
             raise HTTPException(
-                status_code=503,
-                detail={
-                    "error": "일시적으로 AI가 응답하지 않습니다.",
-                },
+                status_code=503, detail="일시적으로 AI가 응답하지 않습니다."
             )
-        elif en_AI_answer == 504:
+        if en_AI_answer == 504:
             raise HTTPException(
                 status_code=504, detail="Hugging Face 요청이 타임아웃되었습니다."
             )
-        elif not en_AI_answer:
+        if not en_AI_answer:
             raise HTTPException(status_code=400, detail="AI 풀이 실패")
 
-        en_answer, math_answer = divide_solving(en_AI_answer)
-        ko_answer = request_translation(en_answer, "KO")
-        ko_answer = [item["text"] for item in ko_answer] if ko_answer else None
-        if not ko_answer:
-            raise HTTPException(status_code=400, detail="풀이 번역 실패")
+        try:
+            en_answer, math_answer = divide_solving(en_AI_answer)
+            ko_answer = request_translation(en_answer, "KO")
+            ko_answer = [item["text"] for item in ko_answer] if ko_answer else None
+            if not ko_answer:
+                raise Exception("풀이 번역 실패")
+            ko_explanation = reconstruct_solving(ko_answer, math_answer)
+        except Exception as e:
+            logger.error(f"[Answer Translation/Reconstruction Error] {e}")
+            raise HTTPException(status_code=400, detail="풀이 번역 또는 재구성 실패")
 
-        ko_explanation = reconstruct_solving(ko_answer, math_answer)
-        en_explanation = en_AI_answer
         problem_type = classify_problem_type()
 
-        key = await upload_to_s3(file.file, "sol.pic", file.filename, problem_type)
-        if not key:
+        try:
+            key = await upload_to_s3(file.file, "sol.pic", file.filename, problem_type)
+            if not key:
+                raise Exception("S3 업로드 실패")
+        except Exception as e:
+            logger.error(f"[S3 Upload Error] {e}")
             raise HTTPException(status_code=500, detail="이미지 업로드 실패")
 
-        session = await db_manager.get_session()
-        created_problem = await crud_problem.create_problem(
-            {
-                "key": key,
-                "problemType": problem_type,
-                "solvingCount": 1,
-                "correctCount": 0,
-                "ko_explanation": ko_explanation,
-                "en_explanation": en_explanation,
-                "answer": get_answer_number(en_problem, get_answer(en_AI_answer)),
-            },
-            session=session,
-        )
-
-        if not created_problem:
+        try:
+            session = await db_manager.get_session()
+            created_problem = await crud_problem.create_problem(
+                {
+                    "key": key,
+                    "problemType": problem_type,
+                    "solvingCount": 1,
+                    "correctCount": 0,
+                    "ko_explanation": ko_explanation,
+                    "en_explanation": en_AI_answer,
+                    "answer": get_answer_number(en_problem, get_answer(en_AI_answer)),
+                },
+                session=session,
+            )
+            if not created_problem:
+                raise Exception("DB 저장 실패")
+        except Exception as e:
+            logger.error(f"[DB Save Error] {e}")
             raise HTTPException(status_code=500, detail="문제 저장 실패")
 
-        return created_problem
+        return {
+            "key": key,
+            "problemType": problem_type,
+            "solvingCount": 1,
+            "correctCount": 0,
+            "ko_explanation": ko_explanation,
+            "en_explanation": en_AI_answer,
+            "answer": get_answer_number(en_problem, get_answer(en_AI_answer)),
+        }
 
-    except HTTPException:
+    except HTTPException as e:
+        logger.warning(f"[HTTP Exception] {e.status_code}: {e.detail}")
         raise
-    except Exception as error:
-        raise HTTPException(status_code=500, detail=f"분석 실패: {str(error)}")
+    except Exception as e:
+        logger.error(f"[AnalyzeProblem Uncaught Error] {str(e)}")
+        raise HTTPException(status_code=500, detail="분석 실패: 서버 오류")
 
 
 @router.post("/solving/{problemId:path}", response_model=MessageWithAnswer)
