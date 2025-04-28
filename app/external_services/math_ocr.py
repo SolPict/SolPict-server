@@ -1,26 +1,18 @@
+import requests
 import json
 import os
 from io import BytesIO
 from typing import Optional
 
-import requests
-from PIL import Image
 
-
-def pil_to_bytesio(pil_image: Image.Image, format: str = "JPEG") -> BytesIO:
-    byte_io = BytesIO()
-    pil_image.save(byte_io, format=format)
-    byte_io.seek(0)
-    return byte_io
-
-
-def request_ocr(pil_image: Image.Image) -> Optional[str]:
+async def request_ocr_from_upload_file(file) -> Optional[str]:
     try:
-        image_bytes = pil_to_bytesio(pil_image)
+        file_bytes = await file.read()
+        byte_stream = BytesIO(file_bytes)
 
         response = requests.post(
             os.getenv("MATH_OCR_URL"),
-            files={"file": ("image.jpg", image_bytes, "image/jpeg")},
+            files={"file": ("image.jpg", byte_stream, "image/jpeg")},
             data={
                 "options_json": json.dumps(
                     {"math_inline_delimiters": ["$", "$"], "rm_spaces": True}
