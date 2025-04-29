@@ -8,7 +8,7 @@ redis_client = redis.from_url(
 
 
 async def check_device_request_limit(
-    request: Request, api_name: str, max_calls: int = 5
+    request: Request, api_name: str, max_calls: int = 10
 ):
     device_id = request.headers.get("Device-Id")
     if not device_id:

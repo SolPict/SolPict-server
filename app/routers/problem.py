@@ -42,7 +42,7 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
             raise rate_limit_error
 
         try:
-            await check_device_request_limit(request, api_name="analyze", max_calls=5)
+            await check_device_request_limit(request, api_name="analyze", max_calls=10)
         except HTTPException as device_limit_error:
             logger.warning(
                 f"[Device Limit Error] {device_limit_error.status_code}: "
