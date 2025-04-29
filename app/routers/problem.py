@@ -33,7 +33,7 @@ logger = logging.getLogger("uvicorn.error")
 async def analyze_problem(request: Request, file: UploadFile = File(...)):
     try:
         try:
-            await check_rate_limit(request, api_name="analyze", limit_time_sec=20)
+            await check_rate_limit(request, api_name="analyze", limit_time_sec=5)
         except HTTPException as rate_limit_error:
             logger.warning(
                 f"[Rate Limit Error] {rate_limit_error.status_code}: "

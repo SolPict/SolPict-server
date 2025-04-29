@@ -7,7 +7,7 @@ redis_client = redis.from_url(
 )
 
 
-async def check_rate_limit(request: Request, api_name: str, limit_time_sec: int = 20):
+async def check_rate_limit(request: Request, api_name: str, limit_time_sec: int = 5):
     device_id = request.headers.get("Device-Id")
     if not device_id:
         raise HTTPException(status_code=400, detail="Device-Id header가 필요합니다.")
