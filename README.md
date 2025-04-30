@@ -1,52 +1,59 @@
 # 프로젝트 소개
 
 <div align = "left">
-<img width="700" src="https://github.com/user-attachments/assets/984574f0-565e-4b54-8cca-b869b161389d" />
-<br>
-<p>
-Sol.Pic(Solve Picture)은 수학문제 이미지를 AI를 활용해 풀이과정과 정답을 제공해주는 모바일기반 어플리케이션 입니다.
-</p>
-<a href="https://github.com/SolPict/SolPict-server">클라이언트</a> |
-<a href="https://github.com/SolPict/SolPict-server">서버</a> |
-<a href="https://github.com/SolPict/SolPict-sub-server">서브서버</a>
+  <img width="700" src="https://github.com/user-attachments/assets/984574f0-565e-4b54-8cca-b869b161389d" />
+  <br>
+  <p>
+    Sol.Pic(Solve Picture)은 수학문제 이미지를 AI를 활용해 풀이과정과 정답을 제공해주는 모바일기반 어플리케이션 입니다.
+  </p>
+    <a href="https://github.com/SolPict/SolPict-server">클라이언트</a> |
+ <a href="https://github.com/SolPict/SolPict-server">서버</a> |
+  <a href="https://catnip-puppy-52c.notion.site/0f30ccd74be94f7cb0b00c4bca706361?pvs=4">노션 </a>
 </div>
+
+<br>
+
+<a href="https://apps.apple.com/us/app/sol-pic/id6743796011">앱 스토어에서 다운로드 받기</a>
 
 ## 구성
 
 <!-- toc -->
 
-- [분석과정](#%EB%B6%84%EC%84%9D%EA%B3%BC%EC%A0%95)
-- [미리보기](#%EB%AF%B8%EB%A6%AC%EB%B3%B4%EA%B8%B0)
-  - [다양한 문제 제공](#%EB%8B%A4%EC%96%91%ED%95%9C-%EB%AC%B8%EC%A0%9C-%EC%A0%9C%EA%B3%B5)
-  - [문제풀이 기능](#%EB%AC%B8%EC%A0%9C%ED%92%80%EC%9D%B4-%EA%B8%B0%EB%8A%A5)
-  - [리뷰노트 서비스 제공](#%EB%A6%AC%EB%B7%B0%EB%85%B8%ED%8A%B8-%EC%84%9C%EB%B9%84%EC%8A%A4-%EC%A0%9C%EA%B3%B5)
-- [기술 스택](#%EA%B8%B0%EC%88%A0-%EC%8A%A4%ED%83%9D)
-  - [프론트엔드](#%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C)
-  - [백엔드](#%EB%B0%B1%EC%97%94%EB%93%9C)
-    - [기술선택이유](#%EA%B8%B0%EC%88%A0%EC%84%A0%ED%83%9D%EC%9D%B4%EC%9C%A0)
-
-* [진행 과정](#%EC%A7%84%ED%96%89-%EA%B3%BC%EC%A0%95)
-  - [사전 설명](#%EC%82%AC%EC%A0%84-%EC%84%A4%EB%AA%85)
-    - [딥러닝 모델이 "사고"해서 수학문제를 풀 수 있을까?](#%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8%EC%9D%B4-%EC%82%AC%EA%B3%A0%ED%95%B4%EC%84%9C-%EC%88%98%ED%95%99%EB%AC%B8%EC%A0%9C%EB%A5%BC-%ED%92%80-%EC%88%98-%EC%9E%88%EC%9D%84%EA%B9%8C)
-    - [기존 수학 문제 풀어주는 AI의 해결과정](#%EA%B8%B0%EC%A1%B4-%EC%88%98%ED%95%99-%EB%AC%B8%EC%A0%9C-%ED%92%80%EC%96%B4%EC%A3%BC%EB%8A%94-ai%EC%9D%98-%ED%95%B4%EA%B2%B0%EA%B3%BC%EC%A0%95)
-* [문제, 해결방안](#%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%EB%B0%A9%EC%95%88)
-  - [1. 이미지 인식에서 도전 과제](#1-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%9D%B8%EC%8B%9D%EC%97%90%EC%84%9C-%EB%8F%84%EC%A0%84-%EA%B3%BC%EC%A0%9C)
-    - [1-1. 수식으로 인한 이미지 분석(OCR) 과정의 어려움](#1-1-%EC%88%98%EC%8B%9D%EC%9C%BC%EB%A1%9C-%EC%9D%B8%ED%95%9C-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EB%B6%84%EC%84%9Docr-%EA%B3%BC%EC%A0%95%EC%9D%98-%EC%96%B4%EB%A0%A4%EC%9B%80)
-  - [2. 딥러닝 모델 적용까지 도전과제](#2-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-%EC%A0%81%EC%9A%A9%EA%B9%8C%EC%A7%80-%EB%8F%84%EC%A0%84%EA%B3%BC%EC%A0%9C)
-    - [2-1. 모델 새로 만들기 vs. 학습된 모델 활용하기](#2-1-%EB%AA%A8%EB%8D%B8-%EC%83%88%EB%A1%9C-%EB%A7%8C%EB%93%A4%EA%B8%B0-vs-%ED%95%99%EC%8A%B5%EB%90%9C-%EB%AA%A8%EB%8D%B8-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0)
-  - [3. 딥러닝 모델 적용 후 도전과제](#3-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-%EC%A0%81%EC%9A%A9-%ED%9B%84-%EB%8F%84%EC%A0%84%EA%B3%BC%EC%A0%9C)
-    - [3-1. 수학 문제 해결을 위한 고성능 그래픽 카드(GPU)의 필요성](#3-1-%EC%88%98%ED%95%99-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%EC%9D%84-%EC%9C%84%ED%95%9C-%EA%B3%A0%EC%84%B1%EB%8A%A5-%EA%B7%B8%EB%9E%98%ED%94%BD-%EC%B9%B4%EB%93%9Cgpu%EC%9D%98-%ED%95%84%EC%9A%94%EC%84%B1)
-    - [3-2. 고성능 GPU 없는 개발 환경에서 개발하기](#3-2-%EA%B3%A0%EC%84%B1%EB%8A%A5-gpu-%EC%97%86%EB%8A%94-%EA%B0%9C%EB%B0%9C-%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C-%EA%B0%9C%EB%B0%9C%ED%95%98%EA%B8%B0)
-  - [4. 딥러닝 모델 정확도 향상 전략](#4-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-%EC%A0%95%ED%99%95%EB%8F%84-%ED%96%A5%EC%83%81-%EC%A0%84%EB%9E%B5)
-    - [4-1. 딥러닝 모델의 성능을 높이는 이미지 처리 전략](#4-1-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8%EC%9D%98-%EC%84%B1%EB%8A%A5%EC%9D%84-%EB%86%92%EC%9D%B4%EB%8A%94-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%B2%98%EB%A6%AC-%EC%A0%84%EB%9E%B5)
-    - [4-2. 딥러닝 모델의 언어 최적화 전략](#4-2-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8%EC%9D%98-%EC%96%B8%EC%96%B4-%EC%B5%9C%EC%A0%81%ED%99%94-%EC%A0%84%EB%9E%B5)
+  * [분석과정](#%EB%B6%84%EC%84%9D%EA%B3%BC%EC%A0%95)
+  * [미리보기](#%EB%AF%B8%EB%A6%AC%EB%B3%B4%EA%B8%B0)
+    + [다양한 문제 제공](#%EB%8B%A4%EC%96%91%ED%95%9C-%EB%AC%B8%EC%A0%9C-%EC%A0%9C%EA%B3%B5)
+    + [문제풀이 기능](#%EB%AC%B8%EC%A0%9C%ED%92%80%EC%9D%B4-%EA%B8%B0%EB%8A%A5)
+    + [리뷰노트 서비스 제공](#%EB%A6%AC%EB%B7%B0%EB%85%B8%ED%8A%B8-%EC%84%9C%EB%B9%84%EC%8A%A4-%EC%A0%9C%EA%B3%B5)
+  * [기술 스택](#%EA%B8%B0%EC%88%A0-%EC%8A%A4%ED%83%9D)
+    + [프론트엔드](#%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C)
+    + [백엔드](#%EB%B0%B1%EC%97%94%EB%93%9C)
+    + [기술선택이유](#%EA%B8%B0%EC%88%A0%EC%84%A0%ED%83%9D%EC%9D%B4%EC%9C%A0)
+- [진행 과정](#%EC%A7%84%ED%96%89-%EA%B3%BC%EC%A0%95)
+  * [사전 설명](#%EC%82%AC%EC%A0%84-%EC%84%A4%EB%AA%85)
+    + [딥러닝 모델이 "사고"해서 수학문제를 풀 수 있을까?](#%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8%EC%9D%B4-%EC%82%AC%EA%B3%A0%ED%95%B4%EC%84%9C-%EC%88%98%ED%95%99%EB%AC%B8%EC%A0%9C%EB%A5%BC-%ED%92%80-%EC%88%98-%EC%9E%88%EC%9D%84%EA%B9%8C)
+    + [기존 수학 문제 풀어주는 AI의 해결과정](#%EA%B8%B0%EC%A1%B4-%EC%88%98%ED%95%99-%EB%AC%B8%EC%A0%9C-%ED%92%80%EC%96%B4%EC%A3%BC%EB%8A%94-ai%EC%9D%98-%ED%95%B4%EA%B2%B0%EA%B3%BC%EC%A0%95)
+- [문제, 해결방안](#%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%EB%B0%A9%EC%95%88)
+  * [1. 이미지 인식에서 도전 과제](#1-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%9D%B8%EC%8B%9D%EC%97%90%EC%84%9C-%EB%8F%84%EC%A0%84-%EA%B3%BC%EC%A0%9C)
+    + [1-1. 수식으로 인한 이미지 분석(OCR) 과정의 어려움](#1-1-%EC%88%98%EC%8B%9D%EC%9C%BC%EB%A1%9C-%EC%9D%B8%ED%95%9C-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EB%B6%84%EC%84%9Docr-%EA%B3%BC%EC%A0%95%EC%9D%98-%EC%96%B4%EB%A0%A4%EC%9B%80)
+  * [2. 딥러닝 모델 적용까지 도전과제](#2-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-%EC%A0%81%EC%9A%A9%EA%B9%8C%EC%A7%80-%EB%8F%84%EC%A0%84%EA%B3%BC%EC%A0%9C)
+    + [2-1. 모델 새로 만들기 vs. 학습된 모델 활용하기](#2-1-%EB%AA%A8%EB%8D%B8-%EC%83%88%EB%A1%9C-%EB%A7%8C%EB%93%A4%EA%B8%B0-vs-%ED%95%99%EC%8A%B5%EB%90%9C-%EB%AA%A8%EB%8D%B8-%ED%99%9C%EC%9A%A9%ED%95%98%EA%B8%B0)
+  * [3. 딥러닝 모델 적용 후 도전과제](#3-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-%EC%A0%81%EC%9A%A9-%ED%9B%84-%EB%8F%84%EC%A0%84%EA%B3%BC%EC%A0%9C)
+    + [3-1. 수학 문제 해결을 위한 고성능 그래픽 카드(GPU)의 필요성](#3-1-%EC%88%98%ED%95%99-%EB%AC%B8%EC%A0%9C-%ED%95%B4%EA%B2%B0%EC%9D%84-%EC%9C%84%ED%95%9C-%EA%B3%A0%EC%84%B1%EB%8A%A5-%EA%B7%B8%EB%9E%98%ED%94%BD-%EC%B9%B4%EB%93%9Cgpu%EC%9D%98-%ED%95%84%EC%9A%94%EC%84%B1)
+    + [3-2. 고성능 GPU 없는 개발 환경에서 개발하기](#3-2-%EA%B3%A0%EC%84%B1%EB%8A%A5-gpu-%EC%97%86%EB%8A%94-%EA%B0%9C%EB%B0%9C-%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C-%EA%B0%9C%EB%B0%9C%ED%95%98%EA%B8%B0)
+  * [4. 딥러닝 모델 정확도 향상 전략](#4-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-%EC%A0%95%ED%99%95%EB%8F%84-%ED%96%A5%EC%83%81-%EC%A0%84%EB%9E%B5)
+    + [4-1. 딥러닝 모델의 성능을 높이는 이미지 처리 전략](#4-1-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8%EC%9D%98-%EC%84%B1%EB%8A%A5%EC%9D%84-%EB%86%92%EC%9D%B4%EB%8A%94-%EC%9D%B4%EB%AF%B8%EC%A7%80-%EC%B2%98%EB%A6%AC-%EC%A0%84%EB%9E%B5)
+    + [4-2. 딥러닝 모델의 언어 최적화 전략](#4-2-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8%EC%9D%98-%EC%96%B8%EC%96%B4-%EC%B5%9C%EC%A0%81%ED%99%94-%EC%A0%84%EB%9E%B5)
+    + [4-3. 딥러닝 모델 미세학습](#4-3-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EB%AA%A8%EB%8D%B8-%EB%AF%B8%EC%84%B8%ED%95%99%EC%8A%B5)
+  * [5. 긴 분석시간 처리](#5-%EA%B8%B4-%EB%B6%84%EC%84%9D%EC%8B%9C%EA%B0%84-%EC%B2%98%EB%A6%AC)
+    + [5-1. 비동기를 활용한 다른 페이지 탐색 기능](#5-1-%EB%B9%84%EB%8F%99%EA%B8%B0%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%9C-%EB%8B%A4%EB%A5%B8-%ED%8E%98%EC%9D%B4%EC%A7%80-%ED%83%90%EC%83%89-%EA%B8%B0%EB%8A%A5)
+- [프로젝트 소감](#%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%86%8C%EA%B0%90)
 
 <!-- tocstop -->
 
 ## 분석과정
 
 <div align="left">
-<img width="700" alt="image-1" src="https://github.com/user-attachments/assets/7daf2431-ab11-4321-967f-ce1086d92cf6">   
+  <img width="700" alt="image-1" src="https://github.com/user-attachments/assets/7daf2431-ab11-4321-967f-ce1086d92cf6">
 </div>
 
 ## 미리보기
@@ -57,7 +64,7 @@ Sol.Pic(Solve Picture)은 수학문제 이미지를 AI를 활용해 풀이과정
 <summary>펼치기</summary>
 <div markdown="1">
 <div align="left">
-<img src="https://github.com/user-attachments/assets/65386a10-6372-42cd-9898-4dcc187182af"  width="200" height="400" />
+  <img src="https://github.com/user-attachments/assets/65386a10-6372-42cd-9898-4dcc187182af"  width="200" height="400" />
 </div>
 </div>
 </details>
@@ -68,8 +75,8 @@ Sol.Pic(Solve Picture)은 수학문제 이미지를 AI를 활용해 풀이과정
 <summary>펼치기</summary>
 <div markdown="2">
 <div align="left">
-<img src="https://github.com/user-attachments/assets/bac8d9ca-2778-472a-9762-30069dc7d327"  width="200" height="400" />
-<img src="https://github.com/user-attachments/assets/86cb313c-b7a3-4a3a-8cdc-c979ea2cf27b"  width="200" height="400" />
+  <img src="https://github.com/user-attachments/assets/bac8d9ca-2778-472a-9762-30069dc7d327"  width="200" height="400" />
+  <img src="https://github.com/user-attachments/assets/86cb313c-b7a3-4a3a-8cdc-c979ea2cf27b"  width="200" height="400" />
 </div>
 </div>
 </details>
@@ -80,9 +87,9 @@ Sol.Pic(Solve Picture)은 수학문제 이미지를 AI를 활용해 풀이과정
 <summary>펼치기</summary>
 <div markdown="3">
 <div align="left">
-<img src="https://github.com/user-attachments/assets/92274187-b471-4a08-add5-163542f834b7"  width="200" height="400" />
-<img src="https://github.com/user-attachments/assets/c1fe6738-28f7-4982-8238-242166891660"  width="200" height="400" />
-<img src="https://github.com/user-attachments/assets/b56e6e2f-93ba-4b6d-bb96-3a5dc28f2dab"  width="200" height="400" />
+  <img src="https://github.com/user-attachments/assets/92274187-b471-4a08-add5-163542f834b7"  width="200" height="400" />
+  <img src="https://github.com/user-attachments/assets/c1fe6738-28f7-4982-8238-242166891660"  width="200" height="400" />
+  <img src="https://github.com/user-attachments/assets/b56e6e2f-93ba-4b6d-bb96-3a5dc28f2dab"  width="200" height="400" />
 </div>
 </details>
 
@@ -156,7 +163,7 @@ AI와 사람을 비교했을 때, 사람의 경우 직관적이고 창의적인 
 구조화된 형태로 변환된 수학 문제는 딥러닝 AI에 의해 큰 문제 유형(대수학, 기하학, 통계학 등등)으로 먼저 분류됩니다. 그 후, 세부적으로(이차 방정식, 미적분, 확률과 통계 등등) 다시 분류되어 각 유형에 맞는 풀이 과정을 거칩니다. 문제 해결 과정과 정답은 기록되어, 마지막으로 자연어 생성(NLG) 과정을 통해 사용자에게 풀이 과정과 함께 결과가 제공됩니다.
 
 <div align="left">
-<img width="700" alt="image" src="https://github.com/user-attachments/assets/b72259c8-492b-4060-a10c-0e075dc695c3">
+  <img width="700" alt="image" src="https://github.com/user-attachments/assets/b72259c8-492b-4060-a10c-0e075dc695c3">
 </div>
 <br>
 <br>
@@ -179,7 +186,7 @@ AI와 사람을 비교했을 때, 사람의 경우 직관적이고 창의적인 
 
 그렇게 수식을 인식시킬 방법을 고민하다가 두 가지 방법을 시도했습니다.
 
-<INS>첫 번째 방법</INS>은 OpenCV를 사용하여 수식 영역과 텍스트 영역을 분리한 후, 각각 따로 분석하는 방식이었습니다.  
+<INS>첫 번째 방법</INS>은 OpenCV를 사용하여 수식 영역과 텍스트 영역을 분리한 후, 각각 따로 분석하는 방식이었습니다.
 그러나 이 방법에서는 영역 분리가 제대로 이루어지지 않았고, 기대했던 성과를 얻기 위해선 openCV에 대해 깊게 공부할 시간이 필요하다는 것을 깨달았습니다.
 <br>
 
@@ -187,7 +194,7 @@ AI와 사람을 비교했을 때, 사람의 경우 직관적이고 창의적인 
 | :-----------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------: |
 | <img width="300" alt="image" src="https://github.com/user-attachments/assets/cc6ff7a4-db3d-4f0a-b95f-8ca7a5df4228"> | <img width="300" alt="image" src="https://github.com/user-attachments/assets/2c86c052-0b2f-4a76-9d73-814abf11161b"> |
 
-<INS>두 번째 방법</INS>은 여러 수식 전용 외부 API 서비스를 비교한 후, 가장 정확하게 수식을 분석해 주는 API를 선택하는 것이었습니다.  
+<INS>두 번째 방법</INS>은 여러 수식 전용 외부 API 서비스를 비교한 후, 가장 정확하게 수식을 분석해 주는 API를 선택하는 것이었습니다.
 이 방법을 통해, 수식과 텍스트 영역을 별도로 처리하는 대신, 수식 인식에 특화된 API를 사용하여 보다 정확한 결과를 얻을 수 있었습니다. 그 결과, 수식 분석이 성공적으로 완료되었고, 이전 방식에서 겪었던 문제들을 해결할 수 있었습니다.
 
 |                                                     기존 이미지                                                     |                                                      분석 결과                                                      |
@@ -208,8 +215,8 @@ AI와 사람을 비교했을 때, 사람의 경우 직관적이고 창의적인 
 
 딥러닝 모델이 좋은 성능을 발휘하려면 많은 양의 학습 데이터가 필요합니다. 특히, 수학 문제 풀이와 관련된 모델의 경우 문제 유형에 따른 다양한 데이터를 확보해야 하는데, 이는 수학적 개념, 문제의 난이도, 문제 유형에 따라 달라질 수 있지만, 일반적으로 모델을 제대로 학습시키려면 최소 10,000개 이상의 많은 양의 데이터(문제, 풀이, 정답)가 필요합니다. 때문에 프로젝트 기한 동안 충분한 데이터를 확보하기 어렵다고 판단해서 학습된 모델을 활용하는 방법을 선택했습니다.
 
-<div align="left"> 
-<img width="700" alt="image" src="https://github.com/user-attachments/assets/3ab06a1a-d6b6-49b0-aedd-ca46685fcdaa">  
+<div align="left">
+  <img width="700" alt="image" src="https://github.com/user-attachments/assets/3ab06a1a-d6b6-49b0-aedd-ca46685fcdaa">
 </div>
 <br>
 
@@ -238,16 +245,16 @@ AI와 사람을 비교했을 때, 사람의 경우 직관적이고 창의적인 
 <INS>첫 번째 방법으로는</INS>, 클라우드 기반 개발 환경인 ‘Colab’을 활용했습니다.
 Colab은 클라우드 환경에서 고성능 GPU를 제공하므로, 이를 통해 딥러닝 모델을 실행하고, 입력에 따른 출력을 받아와서 사용할 수 있었습니다. 이렇게 클라우드 환경을 이용하면 GPU가 없는 환경에서도 복잡한 모델을 실행한 결과를 받아서 사용할 수 있었습니다.
 
-<img width="700" alt="image-7" src="https://github.com/user-attachments/assets/3978fcf5-82a9-4fb1-b631-38cc72ac8ccf">
+ <img width="700" alt="image-7" src="https://github.com/user-attachments/assets/3978fcf5-82a9-4fb1-b631-38cc72ac8ccf">
 
 <br>
 
-<INS>두 번째 방법으로는</INS>, 로컬 서버를 외부에서 접근할 수 있게 해주는 도구인 ‘ngrok’을 사용했습니다.  
+<INS>두 번째 방법으로는</INS>, 로컬 서버를 외부에서 접근할 수 있게 해주는 도구인 ‘ngrok’을 사용했습니다.
 ngrok을 통해 집에 있는 데스크톱 컴퓨터를 서버로 활용할 수 있었습니다. ngrok은 로컬에서 실행 중인 서버를 안전한 터널링을 통해 인터넷에 공개할 수 있게 해주며, 이를 통해 외부 어디서든 로컬 서버에 접근할 수 있습니다. 이렇게 데스크톱의 성능을 활용하여 더 안정적인 환경에서 모델을 실행할 수 있었습니다.
 
-<img width="700" alt="image" src="https://github.com/user-attachments/assets/8e44e336-7c52-444d-a9a5-0feac95c631b">
+ <img width="700" alt="image" src="https://github.com/user-attachments/assets/8e44e336-7c52-444d-a9a5-0feac95c631b">
 
-<br>
+ <br>
 
 위의 방법들을 통해 고성능 GPU의 부족 문제를 간접적으로 해결하면서, GPU가 없는 환경에서도 대규모 모델을 사용하면서 개발을 진행할 수 있었습니다.
 
@@ -293,6 +300,48 @@ ngrok을 통해 집에 있는 데스크톱 컴퓨터를 서버로 활용할 수 
 
 이를 통해 입력 데이터와 모델의 학습 데이터 간의 언어적 일관성이 모델 성능에 중요한 영향을 미친다는 점을 확인할 수 있게 해주었습니다.
 
+### 4-3. 딥러닝 모델 미세학습
+
+모델의 정확도를 향상시키기 위한 가장 직접적인 방법은 미세학습(Fine-tuning)입니다.
+많은 양의 데이터가 필요했기에 **Hugging Face Hub**에서 제공하는 텍스트 분류용 데이터셋을 활용해 LLM을 기반으로 미세학습을 수행했습니다.
+
+<div align="left">
+  <img width="700" src="https://github.com/user-attachments/assets/9bf45bd4-cc67-48fc-8444-ee42c60d2b3e" alt="데이터셋 예시 이미지" />
+</div>
+
+학습 프레임워크로는 대형 언어 모델 학습에 특화된 **LLaMA-Factory**를 사용했습니다.
+이를 통해 다음과 같은 경량화 및 최적화 기법을 적용할 수 있었습니다.
+<br>
+
+1. LoRA (Low-Rank Adaptation): 모델 파라미터 전체가 아닌 일부에만 학습을 적용하여 경량화
+2. bitsandbytes 양자화: 모델을 4bit 또는 8bit로 양자화해 GPU 메모리 사용량을 대폭 절감
+3. liger-kernel 최적화: 학습 속도 향상 및 자원 효율성 개선
+
+<div align="left">
+  <img width="700" src="https://github.com/user-attachments/assets/3e1dac76-1ae7-4c6a-8f9c-6e835c5459a7" alt="LLaMA Factory GUI" />
+</div>
+
+최종적으로는 모델과 데이터셋을 옵션에 맞게 설정한 뒤 ‘시작하기’ 버튼을 누르면 설정한 파이프라인을 통해 자동으로 학습이 진행되며 완성된 모델을 바로 받아볼 수 있습니다.
+
+해당 GUI로 학습하는 방법이외에도 CLI 로 진행하는 방법은 별도의 노션에 정리해 두었습니다. ([노션 참조](https://catnip-puppy-52c.notion.site/Huggingface-16a7604d886e8075a4b9f76e9c6747f8?pvs=4))
+
+## 5. 긴 분석시간 처리
+
+### 5-1. 비동기를 활용한 다른 페이지 탐색 기능
+
+사용자가 문제 이미지를 업로드하면, 분석이 진행되는 동안 로딩 화면이 표시됩니다. 이때 사용자는 뒤로 가기 버튼을 눌러 자유롭게 다른 페이지로 이동할 수 있습니다.
+
+| 다른 페이지 이동                                                                                                                 | 완료시 알람 점등                                                                                                      |
+| -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| <img width="200" height="400" alt="image" src="https://github.com/user-attachments/assets/6178fac8-38bd-47b3-8a24-13596c10f90b"> | <img src="https://github.com/user-attachments/assets/cbf94e6f-72ed-4152-b5bc-ad47fd4c7f33" width="200" height="400"/> |
+
+문제 분석이 완료되면, 다음과 같이 두 가지 방식으로 사용자에게 분석 완료를 알립니다:
+
+1. 어떤 페이지에 있든지 상단 알림 아이콘에 빨간 점이 표시되며, 클릭 시 분석 결과 페이지(정답 및 풀이 페이지)로 이동합니다.
+2. 사용자가 로딩 화면을 그대로 보고 있을 경우, 하단의 ‘결과보기’ 버튼이 활성화되어 분석 결과 페이지로 바로 진입할 수 있습니다.
+
+이러한 구조는 async/await 기반의 비동기 처리 로직과, 전역 상태를 통해 분석 완료 여부를 공유하는 방식으로 구현되었습니다. 덕분에 분석 도중에도 앱 내 다른 기능을 제약 없이 사용할 수 있으며, 분석 결과가 도출되었을 때는 즉시 확인 가능하도록 UX를 설계했습니다.
+
 <!--
 (예정)
 
@@ -305,7 +354,6 @@ ngrok을 통해 집에 있는 데스크톱 컴퓨터를 서버로 활용할 수 
 
 6. 문제풀이 분석시 요청응답 시간 최적화
 
-- 폴링
 - 서브서버 구현
 - 다른 페이지로 이동가능
 - OCR 미리 요청
@@ -314,15 +362,14 @@ ngrok을 통해 집에 있는 데스크톱 컴퓨터를 서버로 활용할 수 
 
 - 데이터베이스 관리
 - 이미지 상태관리
-
 - 메인페이지 이미지들 렌더링 -->
 
-<!-- # 프로젝트 소감
+# 프로젝트 소감
 
-짧았던 프로젝트 기간에 비해 프로젝트 규모가 컸던 만큼, 전체적인 구현을 시간 내에 완료하는 것이 매우 중요했습니다.
+기획부터 배포까지 모든 과정을 혼자서 고민하고 선택하며 진행함으로써 다양한 것을 느끼고 배울 수 있었습니다.
 
-특히 OCR과 딥러닝에 대한 초반 지식이 부족했기 때문에 시도를 통해 이러한 기술들을 구현할 수 있을지에 대한 판단이 불확실했습니다. 그래서 시도와 도전 하는데 시간 관리에 어려움을 겪었고, 어떤 선택을 해야지 프로젝트를 완성에 가까이 이끌 수 있을지에 대한 고민이 있었습니다.
+먼저 기획 단계에서 아이디어를 구체화하고 목업을 만드는 과정에서 다른 사람들과의 협업이 얼마나 중요한지를 실감하게 되었습니다.
+또한 어떤 언어, 기술, 플랫폼을 선택할지 등 작은 결정부터 큰 방향까지 스스로 판단하며 결과를 직접 체감한 덕분에 책임감과 판단력을 기를 수 있었습니다.
+구현단계에서는 기능 개발뿐 아니라 UX, 예외 처리, 배포까지 직접 고려하며 개발자의 역할 범위와 전체적인 코드 흐름을 이해할 수 있는 경험이었습니다.
 
-또한, 익숙하지 않은 모바일 플랫폼 환경과 새로운 언어인 Python은 “내가 과연 잘할 수 있을까?”라는 걱정을 안겨주었지만, 동시에 새로운 기술을 배운다는 기대감도 함께했습니다. 덕분에 프로젝트를 진행하면서 새로운 기술을 배우고 사용하는 데 큰 재미와 즐거움을 느낄 수 있었습니다.
-
-이번 프로젝트를 통해 다양한 기술을 접할 수 있었고, 회사나 직장에 들어가기 전 “시간 내에 목표를 완수한다”는 책임감도 미리 배울 수 있는 뜻깊은 시간이었습니다. -->
+이러한 경험을 통해 서비스 너머의 코드 흐름을 알 수 있었고 스스로 판단하고 이끌어가는 개발자로 한 층 성장할 수 있었습니다.
