@@ -1,5 +1,7 @@
-from app.database import db_manager
 from app.utils.get_images_from_s3 import get_images_from_s3
+from pymongo.client_session import ClientSession
+from fastapi.encoders import jsonable_encoder
+from app.database import db_manager
 
 
 async def get_problem_images(offset: int, limit: int, problem_type: str = "전체보기"):
@@ -16,19 +18,26 @@ async def get_problem_images(offset: int, limit: int, problem_type: str = "전�
     return image_list[start:end], next_offset
 
 
-async def get_review_note_images(email: str, offset: int, limit: int):
-    Users = db_manager.mongodb["users"]
-    found_user = await Users.find_one({"email": email})
+async def create_problem(problem: dict, session: ClientSession = None):
+    problem = jsonable_encoder(problem)
+    Problems = db_manager.mongodb["problems"]
+    new_problem = await Problems.insert_one(problem, session=session)
+    created_problem = await Problems.find_one(
+        {"_id": new_problem.inserted_id}, session=session
+    )
+    return created_problem
 
-    if not found_user or "reviewNote" not in found_user:
-        return [], None
 
-    review_keys = found_user["reviewNote"]
-    all_images = await get_images_from_s3("sol.pic")
-    filtered_images = list(filter(lambda img: img["Key"] in review_keys, all_images))
+async def get_problem_by_key(problem_key: str):
+    Problems = db_manager.mongodb["problems"]
+    return await Problems.find_one({"key": problem_key})
 
-    start = offset * limit
-    end = start + limit
-    next_offset = offset + 1 if end < len(filtered_images) else None
 
-    return filtered_images[start:end], next_offset
+async def update_solving_info(problem_id, email: str, is_correct: bool):
+    Problems = db_manager.mongodb["problems"]
+    update_fields = {"$addToSet": {"solving_users": email}}
+
+    if is_correct:
+        update_fields["$addToSet"]["correct_users"] = email
+
+    return await Problems.find_one_and_update({"_id": problem_id}, update_fields)

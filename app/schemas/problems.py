@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import List, Optional
 from pydantic import BaseModel
+from typing import List, Literal, Optional
+from app.models.problem import problemSchema
 
 
 class Email(BaseModel):
@@ -20,6 +21,34 @@ class ImageData(BaseModel):
     Owner: Optional["Owner"] = None
 
 
-class ImageList(BaseModel):
-    image_list: List[ImageData]
-    offset: Optional[int]
+class Problem_text(BaseModel):
+    ocrText: str
+
+
+class Problem_collection(BaseModel):
+    problems: List[problemSchema]
+
+
+class Submit(BaseModel):
+    email: str
+    user_answer: Optional[Literal["1", "2", "3", "4", "5"]]
+
+
+class Message(BaseModel):
+    message: str
+
+
+class Analyze_Problem(BaseModel):
+    _id: str
+    key: str
+    problemType: str
+    solvingCount: int
+    correctCount: int
+    answer: int | None
+    ko_explanation: str
+    en_explanation: str
+
+
+class MessageWithAnswer(BaseModel):
+    message: str
+    isAnswer: bool

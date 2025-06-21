@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 
 from app.database import db_manager
 from app.background.ping_model import start_ping_loop
-from app.routers import health_check, users, problems, problem
+from app.routers import health_check, users, problems
 
 load_dotenv()
 
@@ -41,6 +41,5 @@ app.add_middleware(
 )
 
 app.include_router(users.router)
-app.include_router(problem.router)
 app.include_router(problems.router)
 app.include_router(health_check.router)
