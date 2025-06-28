@@ -2,7 +2,7 @@ from ast import List
 from git import Optional
 from pydantic import BaseModel
 
-from app.schemas.problems import ImageData
+from app.dtos.problems import ImageData
 
 
 class Message(BaseModel):

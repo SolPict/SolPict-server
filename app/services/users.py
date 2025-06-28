@@ -1,6 +1,6 @@
 from fastapi.encoders import jsonable_encoder
 from app.database import db_manager
-from app.schemas.users import UserEmail
+from app.dtos.users import UserEmail
 from app.utils import get_images_from_s3
 
 

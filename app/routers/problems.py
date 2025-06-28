@@ -1,8 +1,9 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Request
+from app.dtos.users import ImageList
 from app.external_services.math_ocr import request_ocr_from_upload_file
-from app.schemas.problems import Analyze_Problem, MessageWithAnswer, Submit, ImageList
+from app.dtos.problems import Analyze_Problem, MessageWithAnswer, Submit
 
-from app.crud import problems as crud_problems
+from app.services import problems as services
 from app.database import db_manager
 from app.external_services.huggingface import request_huggingface_async
 from app.external_services.translation import request_translation
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/problems", tags=["problems"])
 async def get_problems_list(
     offset: int, problemLimit: int, problemType: str = "전체보기"
 ):
-    images, next_offset = await crud_problems.get_problem_images(
+    images, next_offset = await services.get_problem_images(
         offset, problemLimit, problemType
     )
     return {"image_list": images, "offset": next_offset}
@@ -115,7 +116,7 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
 
         try:
             session = await db_manager.get_session()
-            created_problem = await crud_problems.create_problem(
+            created_problem = await services.create_problem(
                 {
                     "key": key,
                     "problemType": problem_type,
@@ -153,14 +154,12 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
 
 @router.post("/{problemId:path}/submissions", response_model=MessageWithAnswer)
 async def count_up_answer_counting(user_submit: Submit, problemId: str):
-    problem = await crud_problems.get_problem_by_key(problemId)
+    problem = await services.get_problem_by_key(problemId)
     if not problem:
         raise HTTPException(status_code=404, detail="문제를 찾을 수 없습니다.")
 
     is_correct = str(user_submit.user_answer) == str(problem.get("answer"))
-    await crud_problems.update_solving_info(
-        problem["_id"], user_submit.email, is_correct
-    )
+    await services.update_solving_info(problem["_id"], user_submit.email, is_correct)
 
     return {
         "message": "채점이 완료되었습니다.",
@@ -175,7 +174,7 @@ async def get_problem_explanation(problemId: str, language: str = "KO"):
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="잘못된 problemId 형식입니다.")
 
-    found_problem = await crud_problems.get_problem_by_key(problem_key)
+    found_problem = await services.get_problem_by_key(problem_key)
     if not found_problem:
         raise HTTPException(status_code=404, detail="문제를 찾을 수 없습니다.")
 
