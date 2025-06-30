@@ -1,35 +1,21 @@
-from typing import List, Tuple, Optional
-from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from bson import ObjectId
 
 
-class userSchema(BaseModel):
+class UserSchema(BaseModel):
+    _id: Optional[ObjectId]
     email: EmailStr = Field(...)
-    history: List[Tuple[datetime, str]] = Field(...)
-    reviewNote: List[str] = Field(...)
 
     class Config:
-        json_schema_extra = {
-            "example": {
-                "email": "hoho123@gamil.com",
-                "history": [
-                    ("2024-09-20", "669668ddf4d1f9783752806a"),
-                    ("2024-09-22", "669dac2d0373baf913fcd064"),
-                ],
-                "reviewNote": ["669668ddf4d1f9783752806a", "669dac2d0373baf913fcd064"],
-            }
-        }
+        json_schema_extra = {"example": {"email": "hoho123@gmail.com"}}
 
 
 class UpdateUserModel(BaseModel):
-    reviewNote: Optional[List[str]]
+    email: EmailStr
 
     class Config:
-        json_schema_extra = {
-            "example": {
-                "reviewNote": ["669668ddf4d1f9783752806a"],
-            }
-        }
+        json_schema_extra = {"example": {"email": "example@test.com"}}
 
 
 def ResponseModel(data, message):

@@ -65,9 +65,9 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
 
         try:
             lang = analyze_ocr_text(ocr_result)
-        except ValueError as e:
-            logger.error(f"[OCR Analyze Error] {e}")
-            raise HTTPException(status_code=400, detail=str(e))
+        except ValueError as error:
+            logger.error(f"[OCR Analyze Error] {error}")
+            raise HTTPException(status_code=400, detail=str(error))
 
         if lang == "Eng":
             en_problem = ocr_result
@@ -100,8 +100,8 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
             if not ko_answer:
                 raise Exception("풀이 번역 실패")
             ko_explanation = reconstruct_solving(ko_answer, math_answer)
-        except Exception as e:
-            logger.error(f"[Answer Translation/Reconstruction Error] {e}")
+        except Exception as error:
+            logger.error(f"[Answer Translation/Reconstruction Error] {error}")
             raise HTTPException(status_code=400, detail="풀이 번역 또는 재구성 실패")
 
         problem_type = classify_problem_type()
@@ -110,8 +110,8 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
             key = await upload_to_s3(file.file, "sol.pic", file.filename, problem_type)
             if not key:
                 raise Exception("S3 업로드 실패")
-        except Exception as e:
-            logger.error(f"[S3 Upload Error] {e}")
+        except Exception as error:
+            logger.error(f"[S3 Upload Error] {error}")
             raise HTTPException(status_code=500, detail="이미지 업로드 실패")
 
         try:
@@ -120,8 +120,8 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
                 {
                     "key": key,
                     "problemType": problem_type,
-                    "solvingCount": 1,
-                    "correctCount": 0,
+                    "solved_count": 1,
+                    "correct_count": 0,
                     "ko_explanation": ko_explanation,
                     "en_explanation": en_AI_answer,
                     "answer": get_answer_number(en_problem, get_answer(en_AI_answer)),
@@ -130,8 +130,8 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
             )
             if not created_problem:
                 raise Exception("DB 저장 실패")
-        except Exception as e:
-            logger.error(f"[DB Save Error] {e}")
+        except Exception as error:
+            logger.error(f"[DB Save Error] {error}")
             raise HTTPException(status_code=500, detail="문제 저장 실패")
 
         return {
@@ -144,11 +144,11 @@ async def analyze_problem(request: Request, file: UploadFile = File(...)):
             "answer": get_answer_number(en_problem, get_answer(en_AI_answer)),
         }
 
-    except HTTPException as e:
-        logger.warning(f"[HTTP Exception] {e.status_code}: {e.detail}")
+    except HTTPException as error:
+        logger.warning(f"[HTTP Exception] {error.status_code}: {error.detail}")
         raise
-    except Exception as e:
-        logger.error(f"[AnalyzeProblem Uncaught Error] {str(e)}")
+    except Exception as error:
+        logger.error(f"[AnalyzeProblem Uncaught Error] {str(error)}")
         raise HTTPException(status_code=500, detail="분석 실패: 서버 오류")
 
 
@@ -159,7 +159,12 @@ async def count_up_answer_counting(user_submit: Submit, problemId: str):
         raise HTTPException(status_code=404, detail="문제를 찾을 수 없습니다.")
 
     is_correct = str(user_submit.user_answer) == str(problem.get("answer"))
-    await services.update_solving_info(problem["_id"], user_submit.email, is_correct)
+
+    success = await services.record_submission(
+        user_email=user_submit.email, problem_id=problem["_id"], is_correct=is_correct
+    )
+    if not success:
+        raise HTTPException(status_code=500, detail="채점 기록 실패")
 
     return {
         "message": "채점이 완료되었습니다.",
