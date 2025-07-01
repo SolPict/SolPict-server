@@ -1,8 +1,7 @@
 from ast import List
+import datetime
 from git import Optional
 from pydantic import BaseModel
-
-from app.dtos.problems import ImageData
 
 
 class Message(BaseModel):
@@ -11,6 +10,19 @@ class Message(BaseModel):
 
 class UserEmail(BaseModel):
     email: str
+
+
+class Owner(BaseModel):
+    ID: str
+
+
+class ImageData(BaseModel):
+    Key: str
+    LastModified: datetime
+    ETag: str
+    Size: int
+    StorageClass: str
+    Owner: Optional["Owner"] = None
 
 
 class ImageList(BaseModel):

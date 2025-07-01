@@ -1,32 +1,5 @@
-from datetime import datetime
 from pydantic import BaseModel
-from typing import List, Literal, Optional
-from app.models.problem import problemSchema
-
-
-class Email(BaseModel):
-    email: str
-
-
-class Owner(BaseModel):
-    ID: str
-
-
-class ImageData(BaseModel):
-    Key: str
-    LastModified: datetime
-    ETag: str
-    Size: int
-    StorageClass: str
-    Owner: Optional["Owner"] = None
-
-
-class Problem_text(BaseModel):
-    ocrText: str
-
-
-class Problem_collection(BaseModel):
-    problems: List[problemSchema]
+from typing import Literal, Optional
 
 
 class Submit(BaseModel):
@@ -34,21 +7,48 @@ class Submit(BaseModel):
     user_answer: Optional[Literal["1", "2", "3", "4", "5"]]
 
 
-class Message(BaseModel):
-    message: str
-
-
-class Analyze_Problem(BaseModel):
-    _id: str
-    key: str
-    problemType: str
-    solvingCount: int
-    correctCount: int
-    answer: int | None
-    ko_explanation: str
-    en_explanation: str
-
-
 class MessageWithAnswer(BaseModel):
     message: str
     isAnswer: bool
+
+
+class TranslateInput(BaseModel):
+    ocr_text: str
+
+
+class SolveInput(BaseModel):
+    problem: str
+
+
+class ReconstructInput(BaseModel):
+    ai_explanation: str
+
+
+class SubmitProblemInput(BaseModel):
+    file_base64: str
+    filename: str
+    en_explanation: str
+    ko_explanation: str
+    en_problem: str
+
+
+class OCRResponse(BaseModel):
+    ocr_text: str
+
+
+class TranslateResponse(BaseModel):
+    language: Literal["Kor", "Eng"]
+    translated_text: str
+
+
+class SolveResponse(BaseModel):
+    ai_explanation: str
+
+
+class ReconstructResponse(BaseModel):
+    ko_explanation: str
+
+
+class SubmitResponse(BaseModel):
+    key: str
+    message: str
