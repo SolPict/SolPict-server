@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  api:
+    build: ./api-server
+    container_name: solpic_api
+    ports:
+      - "8000:8000"
+    command: >
+      gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 main:app
+    depends_on:
+      - rabbitmq
+
+  worker:
+    build: ./worker-server
+    container_name: solpic_worker
+    command: celery -A worker worker --loglevel=info
+    depends_on:
+      - rabbitmq
