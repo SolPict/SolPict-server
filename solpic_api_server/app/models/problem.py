@@ -10,7 +10,7 @@ class ProblemSchema(BaseModel):
     problemType: str = Field(...)
     ko_explanation: str = Field(...)
     en_explanation: str = Field(...)
-    answer: int = Field(..., gt=0, le=4)
+    answer: int = Field(..., ge=1, le=5)
 
     class Config:
         json_schema_extra = {
