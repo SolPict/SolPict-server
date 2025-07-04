@@ -5,6 +5,8 @@ from app.database import db_manager
 from bson import ObjectId
 from datetime import datetime, timezone
 
+from solpic_api_server.app.utils.classify_problem_type import classify_problem_type
+
 
 async def get_problem_images(offset: int, limit: int, problem_type: str = "전체보기"):
     bucket_name = "sol.pic"
@@ -116,7 +118,7 @@ async def create_problem(session):
         "key": None,
         "ko_question_text": "",
         "en_question_text": "",
-        "problem_type": "",
+        "problem_type": classify_problem_type(),
         "ko_explanation": "",
         "en_explanation": "",
         "answer": None,

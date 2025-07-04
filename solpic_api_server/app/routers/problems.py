@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, Form, UploadFile, HTTPException
+from fastapi import APIRouter, File, Form, Request, UploadFile, HTTPException
 from app.dtos.users import ImageList
 from app.dtos.problems import (
     MessageWithAnswer,
@@ -12,6 +12,9 @@ from celery_client import celery_app
 import base64
 import json
 import logging
+
+from solpic_api_server.app.utils.device_limit import check_device_request_limit
+from solpic_api_server.app.utils.rate_limit import check_rate_limit
 
 logger = logging.getLogger("uvicorn.error")
 router = APIRouter(prefix="/problems", tags=["problems"])
@@ -28,22 +31,32 @@ async def get_problems_list(
 
 
 @router.post("/analyze/start")
-async def start_analysis(device_id: str = Form(...), file: UploadFile = File(...)):
-    session = await db_manager.get_session()
+async def start_analysis(
+    request: Request, device_id: str = Form(...), file: UploadFile = File(...)
+):
+    try:
+        await check_rate_limit(request, api_name="analyze", limit_time_sec=5)
+        await check_device_request_limit(request, api_name="analyze", max_calls=10)
 
-    problem_id = await services.create_problem(session)
+        session = await db_manager.get_session()
+        problem_id = await services.create_problem(session)
+        await services.create_analyze_progress(session, problem_id, device_id)
 
-    await services.create_analyze_progress(session, problem_id, device_id)
+        content = await file.read()
+        file_base64 = base64.b64encode(content).decode("utf-8")
+        celery_app.send_task(
+            "tasks.analyze_pipeline.run_full_analysis",
+            args=[problem_id, device_id, file_base64, file.filename],
+        )
 
-    content = await file.read()
+        return {"problem_id": problem_id, "device_id": device_id}
 
-    file_base64 = base64.b64encode(content).decode("utf-8")
-    celery_app.send_task(
-        "tasks.analyze_pipeline.run_full_analysis",
-        args=[problem_id, device_id, file_base64, file.filename],
-    )
-
-    return {"problem_id": problem_id, "device_id": device_id}
+    except HTTPException as error:
+        logger.warning(f"문제 분석에러 {error.status_code}: {error.detail}")
+        raise error
+    except Exception as error:
+        logger.error(f"문제 분석에러 {str(error)}")
+        raise HTTPException(status_code=500, detail="분석 요청 실패")
 
 
 @router.post("/{problemId:path}/submissions", response_model=MessageWithAnswer)
