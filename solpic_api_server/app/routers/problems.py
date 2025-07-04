@@ -59,6 +59,21 @@ async def start_analysis(
         raise HTTPException(status_code=500, detail="분석 요청 실패")
 
 
+@router.get("/analyze/progress")
+async def get_analyze_progress(device_id: str):
+    progress = await services.get_analyze_progress_by_device(device_id)
+
+    if not progress:
+        raise HTTPException(
+            status_code=404, detail="분석 진행 상태를 찾을 수 없습니다."
+        )
+
+    progress["_id"] = str(progress["_id"])
+    progress["problem_id"] = str(progress["problem_id"])
+
+    return progress
+
+
 @router.post("/{problemId:path}/submissions", response_model=MessageWithAnswer)
 async def count_up_answer_counting(user_submit: Submit, problemId: str):
     problem = await services.get_problem_by_key(problemId)

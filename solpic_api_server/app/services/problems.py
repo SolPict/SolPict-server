@@ -138,3 +138,8 @@ async def create_analyze_progress(session, problem_id: str, device_id: str):
         "save_and_respond_stage": "pending",
     }
     await session.analyze_progress.insert_one(doc)
+
+
+async def get_analyze_progress_by_device(device_id: str):
+    AnalyzeProgress = db_manager.mongodb["analyze_progress"]
+    return await AnalyzeProgress.find_one({"device_id": device_id})
