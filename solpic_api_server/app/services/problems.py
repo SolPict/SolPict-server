@@ -109,3 +109,30 @@ async def record_submission(
     )
 
     return True
+
+
+async def create_problem(session):
+    problem = {
+        "key": None,
+        "ko_question_text": "",
+        "en_question_text": "",
+        "problem_type": "",
+        "ko_explanation": "",
+        "en_explanation": "",
+        "answer": None,
+    }
+    result = await session.problem.insert_one(problem)
+    return str(result.inserted_id)
+
+
+async def create_analyze_progress(session, problem_id: str, device_id: str):
+    doc = {
+        "problem_id": ObjectId(problem_id),
+        "device_id": device_id,
+        "ocr_stage": "pending",
+        "translate_to_en_stage": "pending",
+        "AI_inference_stage": "pending",
+        "translate_to_ko_stage": "pending",
+        "save_and_respond_stage": "pending",
+    }
+    await session.analyze_progress.insert_one(doc)
